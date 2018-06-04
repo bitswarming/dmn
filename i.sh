@@ -36,4 +36,4 @@ docker volume create --name sokol
 #docker-compose  -f docker-compose.yml up -d
 docker-compose  -f docker-compose.yml up  --build   -d
 #start daemon
-docker exec -it daemon1_dev /opt/VerAI/bin/VerAIDaemon
+#docker exec -it daemon1_dev /opt/VerAI/bin/VerAIDaemon

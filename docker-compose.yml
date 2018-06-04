@@ -50,8 +50,8 @@ services:
   tty: true
   #restart: always
   #image: nvidia/cuda
-  #image: tensorflow/tensorflow:1.7.0-gpu-py3
-  image: verai/daemon
+  image: tensorflow/tensorflow:1.7.0-gpu-py3
+  #image: verai/daemon
   #command: /usr/bin/supervisord
   command: /bin/bash
   #command: /opt/VerAI/bin/VerAIDaemon && tail -f /dev/null
