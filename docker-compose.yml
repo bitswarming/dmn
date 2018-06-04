@@ -48,12 +48,13 @@ services:
   network_mode: "service:tincd"
   #network-alias: daemon1_dev
   tty: true
-  restart: always
+  #restart: always
   #image: nvidia/cuda
   #image: tensorflow/tensorflow:1.7.0-gpu-py3
   image: verai/daemon
   #command: /usr/bin/supervisord
   command: /bin/bash
+  #command: /opt/VerAI/bin/VerAIDaemon && tail -f /dev/null
 #JupyterHub docker-compose configuration file
  hub-db:
     image: postgres:9.5
@@ -148,8 +149,8 @@ services:
     #- ${TOR2PORT2}:25401
   cap_add:
     - NET_ADMIN
-  extra_hosts:
-    - daemon1_dev:172.21.0.3
+      #extra_hosts:
+      #- daemon1_dev:172.21.0.3
  #networks:
   #  - backend
   stdin_open: false
