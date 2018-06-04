@@ -1,0 +1,194 @@
+version: '2.3'
+#install nvidia-docker before
+#waiting for runtime key support in version 3 , or change in docker daemon.json default-runtime
+services:
+ daemon:
+  environment:
+    - LD_LIBRARY_PATH=/opt/VerAI/lib
+    - DAEMON2BOARD=${DAEMON2BOARD1}
+    - DAEMONPORT=${DAEMON2PORT1}
+    - DAEMONUUID=${DAEMON2UUID}
+    - SERVERUUID=${SERVERUUID}
+    - SERVERDOMAIN=${SERVERDOMAIN}
+    - KEY=${DAEMON2KEY}
+    - NATSPORT=${SERVERNATSPORT}
+    - GRPCPORT=${SERVERGRPCPORT}
+    - TRACKERPORT=${SERVERTRACKERPORT}
+    - NV_GPU=0
+    - CUDA_VISIBLE_DEVICES=0
+    - NVIDIA_VISIBLE_DEVICES
+    - T=1
+  #container_name: devverai
+  container_name: "${DAEMON2NAME}${SUFFIX}"
+  working_dir: ${WORKDIR}
+  #network_mode: "host"
+  #privileged: true
+  runtime: nvidia
+  #links:
+  #  - hub
+  #devices:
+  #  -  /dev/nvidia0:/dev/nvidia0
+  #  -  /dev/nvidiactl:/dev/nvidiactl 
+  #  -  /dev/nvidia-uvm:/dev/nvidia-uvm
+  #extra_hosts:
+  #  - "deploy.ver.ai:10.0.1.24"
+  volumes:
+    #- ${WORKDIR}/devverai/tmp:/opt/VerAI/projects
+    #- ${WORKDIR}/devverai/opt:/opt
+    - "sokol:/opt/VerAI"
+    #munt users folder no notebook
+   # - /mnt/d/Downloads:/Downloads
+  #runtime:
+  #  - nvidia
+  #networks:
+  #  - backend
+  stdin_open: false
+  depends_on:
+    - tincd
+  network_mode: "service:tincd"
+  #network-alias: daemon1_dev
+  tty: true
+  restart: always
+  #image: nvidia/cuda
+  #image: tensorflow/tensorflow:1.7.0-gpu-py3
+  image: verai/daemon
+  #command: /usr/bin/supervisord
+  command: /bin/bash
+#JupyterHub docker-compose configuration file
+ hub-db:
+    image: postgres:9.5
+    container_name: jupyterhub-db
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      PGDATA: ${DB_VOLUME_CONTAINER}
+    env_file:
+      - secrets/postgres.env
+    volumes:
+      - "db:${DB_VOLUME_CONTAINER}"
+ hub:
+    depends_on:
+      - hub-db
+      - tincd
+    build:
+      context: .
+      dockerfile: Dockerfile.jupyterhub
+      args:
+        JUPYTERHUB_VERSION: ${JUPYTERHUB_VERSION}
+    restart: always
+    image: jupyterhub
+    container_name: jupyterhub
+    volumes:
+      # Bind Docker socket on the host so we can connect to the daemon from
+      # within the container
+      - "/var/run/docker.sock:/var/run/docker.sock:rw"
+      # Bind Docker volume on host for JupyterHub database and cookie secrets
+      - "data:${DATA_VOLUME_CONTAINER}"
+    #ports:
+    #  - "443:443"
+    #  - "80:80"
+#    links:
+#      - hub-db
+    environment:
+      # All containers will join this network
+      DOCKER_NETWORK_NAME: ${DOCKER_NETWORK_NAME}
+      # JupyterHub will spawn this Notebook image for users
+      DOCKER_NOTEBOOK_IMAGE: ${LOCAL_NOTEBOOK_IMAGE}
+      # Notebook directory inside user image
+      DOCKER_NOTEBOOK_DIR: ${DOCKER_NOTEBOOK_DIR}
+      # Using this run command (optional)
+      DOCKER_SPAWN_CMD: ${DOCKER_SPAWN_CMD}
+      # Postgres db info
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: hub-db
+      TINCIP: ${TINCIP}
+    env_file:
+      - secrets/postgres.env
+      - secrets/oauth.env
+    command: >
+      jupyterhub -f /srv/jupyterhub/jupyterhub_config.py
+    #depends_on:
+    #  - tincd
+    network_mode: "service:tincd"
+ tincd:
+  environment:
+    - TINCIP
+  #  - LD_LIBRARY_PATH=/opt/VerAI/lib
+  container_name: tincd
+  #working_dir: ${WORKDIR}
+  #network_mode: "host"
+  #privileged: true
+  devices:
+    -  /dev/net/tun:/dev/net/tun
+  ports:
+    - 443:443
+    - 80:80
+    - 656:655
+    - 656:655/udp
+    - ${DAEMON2BOARD1}:${DAEMON2BOARD1}
+    - ${DAEMON2BOARD1}:${DAEMON2BOARD1}/udp
+    - ${DAEMON2PORT1}:${DAEMON2PORT1}
+    - ${DAEMON2PORT1}:${DAEMON2PORT1}/udp
+    - 50050:50050
+    - 50050:50050/udp
+    - 50051:50051
+    - 50051:50051/udp
+    - 50052:50052
+    - 50052:50052/udp
+    - 50053:50053
+    - 50053:50053/udp
+    - 50054:50054
+    - 50054:50054/udp
+    #- 50055:50055
+    #- 50055:50055/udp
+    - 50056:50056
+    - 50056:50056/udp
+    #- ${GRPCPORT}:${GRPCPORT}
+    #- ${GRPCPORT}:${GRPCPORT}/udp
+    #- ${TOR2PORT2}:25401
+  cap_add:
+    - NET_ADMIN
+  extra_hosts:
+    - daemon1_dev:172.21.0.3
+ #networks:
+  #  - backend
+  stdin_open: false
+  tty: true
+  restart: always
+  image: verai/tinc
+  #command: /bin/bash
+  command:  /usr/sbin/tincd -n verai -D
+ #t2:
+ # container_name: xf
+ # image: ubuntu:16.04
+ # stdin_open: false
+ # tty: true
+ # depends_on:
+ #   - tincd
+ # network_mode: "service:tincd"
+  links:
+   - hub-db
+#   - daemon
+# command: bash
+volumes:
+  data:
+    external:
+      name: ${DATA_VOLUME_HOST}
+  db:
+    external:
+      name: ${DB_VOLUME_HOST}
+  sokol:
+    external:
+      name: sokol
+networks:
+  default:
+    external:
+      name: ${DOCKER_NETWORK_NAME}
+
+#nvidia-docker run -itd --name test -p 6006:6006 -p 6006:6006/udp -p 50055:50055 -p 50055:50055/udp -p 6881:6881 -p 6881:6881/udp -v /mnt/d/ver.ai/dev/opt:/opt -v  /mnt/d/ver.ai/dev/tmp:/opt/VerAI/projects  tensorflow/tensorflow:1.7.0-gpu-py3  /bin/bash
+#sudo nvidia-docker run -itd -e "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/cuda/lib64:/opt/VerAI/lib" -p 6006:6006 -v /mnt/d/ver.ai/dev/opt:/opt -v  /mnt/d/ver.ai/dev/tmp:/opt/VerAI/projects  tensorflow/tensorflow:1.7.0-gpu-py3  /bin/bash
+# python3 ./modelassets/main.py ./model.json --uuid 15228533322965f86d0ab-8009-4d54-938e-dca71e73a773 --components_dir ./components --datasets_dir ./datasets --weights_dir ./weights --summaries_dir ./log/summaries --checkpoints_dir ./log/checkpoints --inference_dir ./log/inference
+# nvidia-docker run -itd --name test -p 6006:6006 -p 6006:6006/udp -p 50055:50055 -p 50055:50055/udp -p 6881:6881 -p 6881:6881/udp -v /mnt/d/ver.ai/dev/opt:/opt -v  /mnt/d/ver.ai/dev/tmp:/opt/VerAI/projects  tensorflow/tensorflow:1.7.0-gpu-py3  /bin/bash
+#sudo nvidia-docker run -itd --name deploy -p 6006:6006 -p 6006:6006/udp -p 50055:50055 -p 50055:50055/udp -p 6881:6881 -p 6881:6881/udp -v /mnt/d/ver.ai/dev2/opt:/opt -v  /mnt/d/ver.ai/dev2/tmp:/opt/VerAI/projects  tensorflow/tensorflow:1.7.0-gpu-py3  /bin/bash
+#sudo nvidia-docker run -itd --name deployverai  -p 6008:6008 -p 6008:6008/udp -p 50057:50057 -p 50057:50057/udp -p 6882:6882 -p 6882:6882/udp  -v /mnt/d/ver.ai/devverai/opt:/opt -v  /mnt/d/ver.ai/devverai/tmp:/opt/VerAI/projects  --add-host="deploy.ver.ai:10.0.1.24"   tensorflow/tensorflow:1.7.0-gpu-py3  /bin/bash
+#sudo nvidia-docker run -itd --name deployverai  -p 6882:6882 -p 6882:6882/udp  -v /mnt/d/ver.ai/devverai/opt:/opt -v  /mnt/d/ver.ai/devverai/tmp:/opt/VerAI/projects  --add-host="deploy.ver.ai:10.0.1.24"   tensorflow/tensorflow:1.7.0-gpu-py3  /bin/bash
