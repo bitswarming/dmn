@@ -1,3 +1,5 @@
+apt update
+apt install git
 git clone https://github.com/bitswarming/dmn.git
 cd dmn
 echo "1. install recent nvidia driver http://www.nvidia.com/Download/index.aspx?lang=en-uk"
@@ -13,7 +15,6 @@ sudo apt-get update
 sudo apt-get install -y nvidia-docker2
 sudo pkill -SIGHUP dockerd
 echo "3. install docker"
-apt update
 sudo apt-get install \
     apt-transport-https \
     ca-certificates \
