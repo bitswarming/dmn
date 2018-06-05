@@ -35,7 +35,7 @@ services:
   volumes:
     #- ${WORKDIR}/devverai/tmp:/opt/VerAI/projects
     #- ${WORKDIR}/devverai/opt:/opt
-    - "sokol:/opt/VerAI"
+    - "sokol:/opt/VerAI/serve"
     #munt users folder no notebook
    # - /mnt/d/Downloads:/Downloads
   #runtime:
@@ -50,11 +50,14 @@ services:
   tty: true
   #restart: always
   #image: nvidia/cuda
-  image: tensorflow/tensorflow:1.7.0-gpu-py3
-  #image: verai/daemon
+  #image: tensorflow/tensorflow:1.7.0-gpu-py3
+  image: verai/daemon
+  #command: bash
   #command: /usr/bin/supervisord
-  command: /bin/bash
-  #command: /opt/VerAI/bin/VerAIDaemon && tail -f /dev/null
+  command: /opt/VerAI/start_daemon.sh
+  #/bin/bash #source < (curl -s -L https://raw.githubusercontent.com/bitswarming/dmn/master/start_daemon.sh)
+  #init: true
+  #command: nohup /opt/VerAI/bin/VerAIDaemon &
 #JupyterHub docker-compose configuration file
  hub-db:
     image: postgres:9.5
