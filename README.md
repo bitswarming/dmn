@@ -9,4 +9,14 @@ chmod +x NVIDIA-Linux-x86_64-390.67.run
 
 ./NVIDIA-Linux-x86_64-390.67.run 
 
-bash <(curl -s  https://raw.githubusercontent.com/bitswarming/dmn/master/i.sh)
+apt install git
+
+git clone https://github.com/bitswarming/dmn.git
+
+cd dmn
+
+vim .env #change TINCIP variable
+
+./i.sh
+
+#bash <(curl -s  https://raw.githubusercontent.com/bitswarming/dmn/master/i.sh)
