@@ -17,6 +17,7 @@ services:
     - NV_GPU=0
     - CUDA_VISIBLE_DEVICES=0
     - NVIDIA_VISIBLE_DEVICES
+    - VERBOOKSHAREDPATH
     - T=1
   #container_name: devverai
   container_name: "${DAEMON2NAME}${SUFFIX}"
@@ -25,6 +26,7 @@ services:
   #privileged: true
   runtime: nvidia
   #links:
+  #  - tincd
   #  - hub
   #devices:
   #  -  /dev/nvidia0:/dev/nvidia0
@@ -35,12 +37,14 @@ services:
   volumes:
     #- ${WORKDIR}/devverai/tmp:/opt/VerAI/projects
     #- ${WORKDIR}/devverai/opt:/opt
-    - "sokol:/opt/VerAI/serve"
+    #- "sokol:/opt/VerAI/serve"
+    - "/var/lib/docker/volumes:/opt/VerAI/serve"
     #munt users folder no notebook
    # - /mnt/d/Downloads:/Downloads
   #runtime:
   #  - nvidia
-  #networks:
+ # networks:
+ #   - default
   #  - backend
   stdin_open: false
   depends_on:
@@ -91,8 +95,9 @@ services:
     #ports:
     #  - "443:443"
     #  - "80:80"
-#    links:
-#      - hub-db
+    #links:
+    #  - hub-db
+    #  - daemon
     environment:
       # All containers will join this network
       DOCKER_NETWORK_NAME: ${DOCKER_NETWORK_NAME}
@@ -106,6 +111,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_HOST: hub-db
       TINCIP: ${TINCIP}
+      VERBOOKSHAREDPATH: ${VERBOOKSHAREDPATH}
     env_file:
       - secrets/postgres.env
       - secrets/oauth.env
@@ -114,6 +120,10 @@ services:
     #depends_on:
     #  - tincd
     network_mode: "service:tincd"
+    #networks:
+    #  default:
+    #    aliases:
+    #      - hhh
  tincd:
   environment:
     - TINCIP
@@ -154,8 +164,8 @@ services:
     - NET_ADMIN
       #extra_hosts:
       #- daemon1_dev:172.21.0.3
- #networks:
-  #  - backend
+  #networks:
+  #  - default
   stdin_open: false
   tty: true
   restart: always
@@ -170,8 +180,11 @@ services:
  # depends_on:
  #   - tincd
  # network_mode: "service:tincd"
+ # dns_search: .
   links:
    - hub-db
+#   - daemon
+#   - hub
 #   - daemon
 # command: bash
 volumes:
@@ -186,6 +199,7 @@ volumes:
       name: sokol
 networks:
   default:
+  #  driver: bridge
     external:
       name: ${DOCKER_NETWORK_NAME}
 

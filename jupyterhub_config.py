@@ -13,12 +13,13 @@ c = get_config()
 # Spawn single-user servers as Docker containers
 c.JupyterHub.spawner_class = 'dockerspawner.DockerSpawner'
 ###
-#c.Spawner.mem_limit = '200M'
-c.DockerSpawner.read_only_volumes = {"nvidia_driver":"/usr/local/nvidia"}
+c.DockerSpawner.mem_limit = '800M'
+c.Spawner.mem_limit = '800M'
+#c.DockerSpawner.read_only_volumes = {"nvidia_driver":"/usr/local/nvidia"}
 #c.DockerSpawner.extra_create_kwargs.update({ 'volume_driver': 'nvidia-docker' })
 #c.DockerSpawner.extra_create_kwargs = {"volume_driver":"nvidia-docker"}
 #c.DockerSpawner.extra_create_kwargs.update({ 'volume_driver': 'nvidia-docker' })
-c.DockerSpawner.extra_host_config = { "devices":["/dev/nvidiactl","/dev/nvidia-uvm","/dev/nvidia-uvm-tools","/dev/nvidia0"] }
+#c.DockerSpawner.extra_host_config = { "devices":["/dev/nvidiactl","/dev/nvidia-uvm","/dev/nvidia-uvm-tools","/dev/nvidia0"] }
 ###
 # Spawn containers from this image
 c.DockerSpawner.container_image = os.environ['DOCKER_NOTEBOOK_IMAGE']
@@ -29,22 +30,56 @@ c.DockerSpawner.container_image = os.environ['DOCKER_NOTEBOOK_IMAGE']
 # using the DOCKER_SPAWN_CMD environment variable.
 c.NotebookApp.allow_root=True
 spawn_cmd = os.environ.get('DOCKER_SPAWN_CMD', "start-singleuser.sh")
-c.DockerSpawner.extra_create_kwargs.update({ 'command': spawn_cmd })
+c.DockerSpawner.extra_create_kwargs.update({ 'command': spawn_cmd ,  'runtime': 'nvidia'})
+#c.DockerSpawner.extra_create_kwargs.update({ 'command': ' jupyter notebook --allow-root' ,  'runtime': 'nvidia'})
+#c.DockerSpawner.extra_create_kwargs.update({ 'command': spawn_cmd})
+#c.DockerSpawner.extra_create_kwargs = {
+#    'runtime': 'nvidia',
+#}
+#c.DockerSpawner.extra_create_kwargs = {'user' : '0'}
+#c.DockerSpawner.environment = {['VERBOOKSHAREDPATH' : os.environ['VERBOOKSHAREDPATH'],'VERBOOKUSERID' : 'youare{username}']}
+#c.DockerSpawner.extra_create_kwargs = {'user': 'root'}
+  #'GRANT_SUDO': '1',
+  #'UID': '0', 
+#usr = f'{username}'
+#print("blalbla %s" % (usr))
+#c.DockerSpawner.use_docker_links = True
+c.DockerSpawner.links = {
+   'jupyterhub': 'jupyterhub',
+   'daemon1_dev':'daemon1_dev',
+}
+  #'USER':'root',
+c.DockerSpawner.environment = {
+  'GRANT_SUDO': 'yes',
+  'VERBOOKSHAREDPATH' :  os.environ['VERBOOKSHAREDPATH'],
+  'VERAI_DAEMON_HOST' : 'tincd',
+  'VERBOOKUSERID' : 'jupyterhub-user-${JUPYTERHUB_USER}/_data',
+
+}
+#c.DockerSpawner.extra_create_kwargs.update({ 'runtime': 'nvidia' })
+#c.DockerSpawner.extra_host_config = {'mem_limit': '300m'}
+#c.DockerSpawner.environment = {'VERBOOKUSERID' : 'youare{username}'}
+#c.DockerSpawner.extra_create_kwargs.update({ 'command': spawn_cmd }{, 'environment': {'XXX':"yyy"} })
+#/bin/bash -c "export VAR1=VAL1 && export VAR2=VAL2 && your_cmd"
 # Connect containers to this Docker network
 network_name = os.environ['DOCKER_NETWORK_NAME']
 c.DockerSpawner.use_internal_ip = True
 c.DockerSpawner.network_name = network_name
 # Pass the network name as argument to spawned containers
 c.DockerSpawner.extra_host_config = { 'network_mode': network_name }
+#c.DockerSpawner.extra_host_config = { 'network_mode': 'service_tincd' }
 # Explicitly set notebook directory because we'll be mounting a host volume to
 # it.  Most jupyter/docker-stacks *-notebook images run the Notebook server as
 # user `jovyan`, and set the notebook directory to `/home/jovyan/work`.
 # We follow the same convention.
-notebook_dir = os.environ.get('DOCKER_NOTEBOOK_DIR') or '/home/jovyan/work'
+notebook_dir = os.environ.get('DOCKER_NOTEBOOK_DIR') or '/home/jovyan'
+#notebook_dir = os.environ.get('DOCKER_NOTEBOOK_DIR') or '/home/jovyan/work'
 c.DockerSpawner.notebook_dir = notebook_dir
 # Mount the real user's Docker volume on the host to the notebook user's
 # notebook directory in the container
-c.DockerSpawner.volumes = { 'jupyterhub-user-{username}': notebook_dir, 'sokol':'/opt/VerAI/serve' }
+#c.DockerSpawner.volumes = { 'jupyterhub-user-{username}': notebook_dir, 'sokol':'/opt/VerAI/serve' }
+#c.DockerSpawner.volumes = { 'jupyterhub-user-{username}': notebook_dir }
+c.DockerSpawner.volumes = {  'jupyterhub-user-{username}-home': notebook_dir, 'jupyterhub-user-{username}': '/opt/VerAI/serve' }
 # volume_driver is no longer a keyword argument to create_container()
 # c.DockerSpawner.extra_create_kwargs.update({ 'volume_driver': 'local' })
 # Remove containers once they are stopped
