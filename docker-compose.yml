@@ -164,8 +164,10 @@ services:
     - NET_ADMIN
       #extra_hosts:
       #- daemon1_dev:172.21.0.3
-  #networks:
-  #  - default
+  networks:
+    - default
+    - pub_net
+  # sudo docker network ^Ceate -d macvlan --subnet=10.0.1.0/24 --gateway=10.0.1.1  --ip-range 10.0.1.88/32 -o parent=ens160 pub_net
   stdin_open: false
   tty: true
   restart: always
@@ -202,6 +204,9 @@ networks:
   #  driver: bridge
     external:
       name: ${DOCKER_NETWORK_NAME}
+  pub_net: 
+    external:
+      name: pub_net
 
 #nvidia-docker run -itd --name test -p 6006:6006 -p 6006:6006/udp -p 50055:50055 -p 50055:50055/udp -p 6881:6881 -p 6881:6881/udp -v /mnt/d/ver.ai/dev/opt:/opt -v  /mnt/d/ver.ai/dev/tmp:/opt/VerAI/projects  tensorflow/tensorflow:1.7.0-gpu-py3  /bin/bash
 #sudo nvidia-docker run -itd -e "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/cuda/lib64:/opt/VerAI/lib" -p 6006:6006 -v /mnt/d/ver.ai/dev/opt:/opt -v  /mnt/d/ver.ai/dev/tmp:/opt/VerAI/projects  tensorflow/tensorflow:1.7.0-gpu-py3  /bin/bash
