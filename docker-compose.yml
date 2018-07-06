@@ -39,6 +39,7 @@ services:
     #- ${WORKDIR}/devverai/opt:/opt
     #- "sokol:/opt/VerAI/serve"
     - "/var/lib/docker/volumes:/opt/VerAI/serve"
+    - "/var/lib/docker/volumes:/opt/VerAI/notebooks"
     #munt users folder no notebook
    # - /mnt/d/Downloads:/Downloads
   #runtime:
