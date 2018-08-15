@@ -1,7 +1,7 @@
 apt update
 apt install git
-git clone https://github.com/bitswarming/dmn.git
-cd dmn
+#git clone https://github.com/bitswarming/dmn.git
+#cd dmn
 echo "1. install recent nvidia driver http://www.nvidia.com/Download/index.aspx?lang=en-uk"
 echo "2. install"
 # If you have nvidia-docker 1.0 installed: we need to remove it and all existing GPU containers
