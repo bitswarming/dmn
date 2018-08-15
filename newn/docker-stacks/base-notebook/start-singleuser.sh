@@ -41,4 +41,6 @@ else
 fi
 #pip3 install -e /jlab/nbverai
 jupyter serverextension enable nbverai
+mkdir -p /home/jovyan/.jupyter/lab/user-settings/@jupyterlab/apputils-extension
+echo '{"theme":"JupyterLab Dark"}' > /home/jovyan/.jupyter/lab/user-settings/@jupyterlab/apputils-extension/themes.jupyterlab-settings
 . /usr/local/bin/start.sh $NOTEBOOK_BIN $NOTEBOOK_ARGS $@
