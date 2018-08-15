@@ -16,6 +16,7 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get -yq dist-upgrade \
  && apt-get install -yq --no-install-recommends \
     wget \
+    git \
     bzip2 \
     ca-certificates \
     sudo \
@@ -79,7 +80,22 @@ RUN cd /tmp && \
     rm -rf /home/$NB_USER/.cache/yarn && \
     fix-permissions $CONDA_DIR && \
     fix-permissions /home/$NB_USER
-
+#nbverai
+#RUN fix-permissions "/opt"
+#ENV INSTALL_PATH="/opt/JupyterLab"
+#RUN mkdir -p ${INSTALL_PATH}  && fix-permissions ${INSTALL_PATH}
+#COPY nbverai/nbverai  ${INSTALL_PATH}/nbverai
+#RUN mkdir -p ${INSTALL_PATH} # && 
+#RUN fix-permissions ${INSTALL_PATH}/nbverai
+#cp -r ./nbverai ${INSTALL_PATH}
+#RUN chown $NB_USER:$NB_GID ${INSTALL_PATH}
+#RUN chown $NB_USER:$NB_GID ${INSTALL_PATH}/nbverai
+#RUN fix-permissions ${INSTALL_PATH}/nbverai
+#RUN fix-permissions ${INSTALL_PATH}
+#RUN pip install --no-cache  -e ${INSTALL_PATH}/nbverai
+#RUN  conda install --quiet --yes   ${INSTALL_PATH}/nbverai
+#jupyter serverextension enable --py nbverai
+#jupyter serverextension enable --py nbverai \
 # Install Jupyter Notebook and Hub
 RUN conda install --quiet --yes \
     'notebook=5.5.*' \
@@ -113,11 +129,61 @@ RUN fix-permissions /etc/jupyter/
 USER $NB_UID
 #
 USER root
+RUN fix-permissions  /home/jovyan/.cache
+#sudo chmod -R  777 /usr/local/lib/python3.5/dist-packages
 ENV GRANT_SUDO=yes
 ENV VERAI_DAEMON_HOST=daemon1_dev
+RUN pip install numpy grpcio grpcio-tools futures gitpython
+#RUN jupyter serverextension enable nbverai
+#/home/joyvan/cache
+#RUN pip install --upgrade pip
 RUN python3 -m pip install --no-cache jupyterhub==0.8.1
+RUN mkdir -p /jlab/nbverai # && fix-permissions /jlab/nbverai
+#RUN chown $NB_USER:$NB_GID /jlab/nbverai
+COPY jupyterLab/nbverai /jlab/nbverai
+COPY jupyterLab/front-extension /jlab/front-extension
+COPY localpip /veraipip
+RUN chmod -R 777 /jlab
+RUN chmod -R 777 /veraipip
+RUN cd /jlab/front-extension && npm i
+RUN cd /jlab && jupyter labextension install front-extension
+#xtest
+#RUN fix-permissions /jlab/nbverai
+RUN cd /veraipip && pip install   -e /veraipip/pip_package/verai
+RUN cd /jlab && pip install   -e /jlab/nbverai
+#RUN cd /jlab && pip install  -e /jlab/nbverai
+#RUN pip3 install  -e /jlab/nbverai
+#RUN cd /jlab && jupyter serverextension enable --py nbverai --sys-prefix
+#RUN cd /jlab && jupyter serverextension enable nbverai --sys-prefix
+#RUN cd /jlab && jupyter serverextension enable --py nbverai
+RUN chmod -R  777 /usr/local/lib/python3.5
+RUN chmod -R  777 /opt/conda/lib
+RUN chmod -R  777 /jlab
+RUN chmod -R 777 /veraipip
+#RUN jupyter serverextension enable  nbverai
+USER $NB_UID
+#RUN cd /veraipip && pip install --no-cache  -e /veraipip/pip_package/verai
+#RUN cd /jlab && jupyter serverextension enable nbverai --sys-prefix
+#RUN fix-permissions /jlab
+#RUN fix-permissions /jlab/nbverai
+#RUN cd /jlab && pip install --no-cache  -e /jlab/nbverai
+#RUN cd /jlab && jupyter serverextension enable --py nbverai
+#RUN fix-permissions /jlab
+#RUN fix-permissions /jlab/nbverai
+#RUN fix-permissions /veraipip
+#RUN cd /veraipip && pip install --no-cache  -e /veraipip/pip_package/verai
+#RUN jupyter serverextension enable nbverai --sys-prefix
+RUN pip3 install  -e /veraipip/pip_package/verai
+#RUN pip3 install  -e /jlab/nbverai
+#RUN jupyter serverextension enable  nbverai
+#RUN jupyter serverextension enable --py  nbverai
+RUN jupyter labextension enable front-extension
+USER root
 RUN curl -O -L https://www.dropbox.com/s/nt7664ih508bly1/install_verai.sh?dl=0 && mv ./install_verai.sh\?dl\=0 ./install_verai.sh && chmod +x ./install_verai.sh
 RUN ./install_verai.sh
 RUN rm install_verai.sh
 RUN python -m pip install --no-cache tensorflow-gpu
 RUN pip install --no-cache tensorflow-gpu
+#jlab
+#/opt/conda
+#/home/jovyan/.cache

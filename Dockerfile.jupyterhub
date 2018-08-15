@@ -12,6 +12,7 @@ RUN /opt/conda/bin/conda install -yq psycopg2=2.7 && \
         oauthenticator==0.7.* \
         jupyterhub-jwtauthenticator \
         jupyterhub-dummyauthenticator \
+        git+https://github.com/jupyterhub/wrapspawner \
         dockerspawner==0.9.*
 
 # Copy TLS certificate and key

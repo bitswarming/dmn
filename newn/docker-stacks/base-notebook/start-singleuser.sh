@@ -39,5 +39,6 @@ if [ ! -z "$JUPYTER_ENABLE_LAB" ]; then
 else
   NOTEBOOK_BIN=jupyterhub-singleuser
 fi
-
+#pip3 install -e /jlab/nbverai
+jupyter serverextension enable nbverai
 . /usr/local/bin/start.sh $NOTEBOOK_BIN $NOTEBOOK_ARGS $@
